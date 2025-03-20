@@ -182,6 +182,7 @@
 
             try {
                 const response = await fetch(SCRIPT_URL, {
+                    mode: 'no-cors',
                     method: 'POST',
                     body: JSON.stringify(formData),
                     headers: {
