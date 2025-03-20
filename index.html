@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Форма вакансий</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+        button { background: #2196F3; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        .error { color: red; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Отправить вакансию</h2>
+    
+    <div class="form-group">
+        <label>ФИО или Название компании:</label>
+        <input type="text" id="name_company" required>
+    </div>
+
+    <div class="form-group">
+        <label>Описание вакансии:</label>
+        <textarea id="vacancy_text" rows="5" required></textarea>
+    </div>
+
+    <button onclick="sendData()">Отправить</button>
+    <div id="message"></div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUKEiFDuQG1fEBgfIgqlJuoLJ8MI1VyMrIULZHErDY-mMDsBAqmkDr1iltb9xUC2X8/exec';
+        const messageEl = document.getElementById('message');
+
+        async function sendData() {
+            const data = {
+                name_company: document.getElementById('name_company').value.trim(),
+                vacancy_text: document.getElementById('vacancy_text').value.trim()
+            };
+
+            // Валидация
+            if (!data.name_company || !data.vacancy_text) {
+                showMessage('Заполните все поля!', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Вакансия успешно отправлена!', 'success');
+                    // Очистка формы
+                    document.getElementById('name_company').value = '';
+                    document.getElementById('vacancy_text').value = '';
+                } else {
+                    showMessage(result.error || 'Ошибка отправки', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка соединения', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        function showMessage(text, type) {
+            messageEl.textContent = text;
+            messageEl.className = type;
+        }
+    </script>
+</body>
+</html>
