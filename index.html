@@ -148,7 +148,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'ВАШ_GOOGLE_SCRIPT_URL';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUKEiFDuQG1fEBgfIgqlJuoLJ8MI1VyMrIULZHErDY-mMDsBAqmkDr1iltb9xUC2X8/exec';
         const messageEl = document.getElementById('message');
         const loadingEl = document.querySelector('.loading');
 
@@ -187,8 +187,7 @@
                     body: JSON.stringify(formData),
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    mode: 'cors'
+                    }, 
                 });
 
                 if (!response.ok) throw new Error('Ошибка сети');
