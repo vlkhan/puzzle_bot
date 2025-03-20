@@ -190,9 +190,10 @@
                     }, 
                 });
 
-                if (!response.ok) throw new Error('Ошибка сети');
-
+                
                 const result = await response.json();
+                
+                if (!response.ok) throw new Error('Ошибка сети');
                 
                 if (result.success) {
                     showMessage('Вакансия успешно отправлена!');
@@ -203,8 +204,8 @@
                     throw new Error(result.error || 'Неизвестная ошибка');
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                showMessage(`Ошибка отправки: ${error.message}`, 'error');
+                //console.error('Ошибка:', error);
+                //showMessage(`Ошибка отправки: ${error.message}`, 'error');
             } finally {
                 toggleLoading(false);
             }
