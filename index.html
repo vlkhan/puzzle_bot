@@ -44,9 +44,9 @@
         }
 
         input[type="text"],
-        input[type="url"],
         textarea,
-        select {
+        select,
+        input[type="file"] {
             width: 100%;
             padding: 12px;
             border: 2px solid #bdc3c7;
@@ -56,7 +56,6 @@
         }
 
         input[type="text"]:focus,
-        input[type="url"]:focus,
         textarea:focus,
         select:focus {
             outline: none;
@@ -134,59 +133,85 @@
         .form-row .form-group {
             flex: 1;
         }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Добавление статьи</h1>
         
-        <div class="form-group">
-            <label for="title">Заголовок статьи:</label>
-            <input type="text" id="title" required>
-        </div>
-
-        <div class="form-group">
-            <label for="text">Текст статьи:</label>
-            <textarea id="text" required></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label for="image">Ссылка на изображение (Google Drive или другой источник):</label>
-            <input type="url" id="image" placeholder="https://drive.google.com/file/d/...">
-        </div>
-        
-        <div class="form-row">
+        <form id="articleForm">
             <div class="form-group">
-                <label for="study">Учебное заведение (если применимо):</label>
-                <input type="text" id="study">
+                <label for="title">Заголовок статьи:</label>
+                <input type="text" id="title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="text">Текст статьи:</label>
+                <textarea id="text" required></textarea>
             </div>
             
             <div class="form-group">
-                <label for="type">Тип статьи:</label>
-                <select id="type" required>
-                    <option value="">Выберите тип</option>
-                    <option value="Конкурс">Конкурс</option>
-                    <option value="Новость">Новость</option>
-                    <option value="Мероприятие">Мероприятие</option>
-                    <option value="Статья">Статья</option>
-                </select>
+                <label for="image">Изображение:</label>
+                <input type="file" id="image" accept="image/*">
+                <img id="imagePreview" class="image-preview" alt="Предпросмотр изображения">
             </div>
-        </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="study">Учебное заведение (если применимо):</label>
+                    <input type="text" id="study">
+                </div>
+                
+                <div class="form-group">
+                    <label for="type">Тип статьи:</label>
+                    <select id="type" required>
+                        <option value="">Выберите тип</option>
+                        <option value="Конкурс">Конкурс</option>
+                        <option value="Новость">Новость</option>
+                        <option value="Мероприятие">Мероприятие</option>
+                        <option value="Статья">Статья</option>
+                    </select>
+                </div>
+            </div>
 
-        <div class="loading">
-            <div class="loader"></div>
-            <p>Отправка данных...</p>
-        </div>
+            <div class="loading">
+                <div class="loader"></div>
+                <p>Отправка данных...</p>
+            </div>
 
-        <button onclick="handleSubmit()">Отправить статью</button>
-        
-        <div class="alert" id="message"></div>
+            <button type="submit">Отправить статью</button>
+            
+            <div class="alert" id="message"></div>
+        </form>
     </div>
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUKEiFDuQG1fEBgfIgqlJuoLJ8MI1VyMrIULZHErDY-mMDsBAqmkDr1iltb9xUC2X8/exec';
         const messageEl = document.getElementById('message');
         const loadingEl = document.querySelector('.loading');
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('imagePreview');
+        const form = document.getElementById('articleForm');
+
+        // Предпросмотр изображения
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
 
         function showMessage(text, type = 'success') {
             messageEl.className = `alert alert-${type}`;
@@ -202,17 +227,22 @@
             loadingEl.style.display = show ? 'block' : 'none';
         }
 
-        async function handleSubmit() {
-            const formData = {
-                title: document.getElementById('title').value.trim(),
-                text: document.getElementById('text').value.trim(),
-                image: document.getElementById('image').value.trim(),
-                study: document.getElementById('study').value.trim(),
-                type: document.getElementById('type').value
-            };
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value.trim());
+            formData.append('text', document.getElementById('text').value.trim());
+            formData.append('study', document.getElementById('study').value.trim());
+            formData.append('type', document.getElementById('type').value);
+            
+            // Добавляем файл изображения, если он выбран
+            if (imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
 
             // Валидация
-            if (!formData.title || !formData.text || !formData.type) {
+            if (!formData.get('title') || !formData.get('text') || !formData.get('type')) {
                 showMessage('Пожалуйста, заполните все обязательные поля', 'error');
                 return;
             }
@@ -222,10 +252,7 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(formData),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    body: formData
                 });
                 
                 if (!response.ok) throw new Error('Ошибка сети');
@@ -235,11 +262,8 @@
                 if (result.success) {
                     showMessage(`Статья успешно отправлена на модерацию! ID: ${result.id}`);
                     // Очистка формы
-                    document.getElementById('title').value = '';
-                    document.getElementById('text').value = '';
-                    document.getElementById('image').value = '';
-                    document.getElementById('study').value = '';
-                    document.getElementById('type').value = '';
+                    form.reset();
+                    imagePreview.style.display = 'none';
                 } else {
                     throw new Error(result.error || 'Неизвестная ошибка');
                 }
@@ -250,6 +274,9 @@
                 toggleLoading(false);
             }
         }
+
+        // Назначаем обработчик формы
+        form.addEventListener('submit', handleSubmit);
     </script>
 </body>
 </html>
