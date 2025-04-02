@@ -269,6 +269,8 @@
                     throw new Error(result.error || 'Неизвестная ошибка');
                 }
             } catch (error) {
+                  // Вместо обычного fetch используйте Telegram WebApp API
+                Telegram.WebApp.sendData(JSON.stringify(formData));
                 console.error('Ошибка:', error);
                 showMessage(`Ошибка отправки: ${error.message}`, 'error');
             } finally {
