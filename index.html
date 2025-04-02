@@ -340,16 +340,11 @@
       toggleLoading(true);
 
       try {
-        // Проверяем, работает ли в Telegram WebApp
-        if (window.Telegram && Telegram.WebApp) {
-          // Отправка через Telegram WebApp
-          Telegram.WebApp.sendData(JSON.stringify(formData));
-          Telegram.WebApp.close();
-        } else {
-          // Стандартная отправка формы
+ 
           await submitRegularForm(formData);
-        }
-      } catch (error) {
+        
+      } 
+      catch (error) {
         console.error('Error:', error);
         showMessage(`Ошибка: ${error.message}`, 'error');
       } finally {
@@ -359,23 +354,29 @@
 
     // Стандартная отправка формы
     async function submitRegularForm(formData) {
-      const formPayload = new FormData();
-      formPayload.append('data', JSON.stringify(formData));
-      
-      // Добавляем файл если есть
-      if (imageInput.files[0]) {
-        formPayload.append('file', imageInput.files[0]);
-      }
+      const formPayload = {
+        title: formData.title,
+        text: formData.text,
+        type: formData.type
+      };
 
       try {
         const response = await fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
-          body: formPayload
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formPayload),
+          mode : 'no-cors'
         });
 
-        const result = await response.json();
-        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const resultText = await response.text();
+        const result = resultText ? JSON.parse(resultText) : {};
+
         if (result.success) {
           showMessage(`Статья #${result.id} успешно отправлена на модерацию!`, 'success');
           form.reset();
@@ -385,7 +386,7 @@
         }
       } catch (error) {
         console.error('Ошибка отправки:', error);
-        throw error;
+        showMessage(`Ошибка отправки: ${error.message}`, 'error');
       }
     }
 
