@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форма отправки вакансий</title>
+    <title>Форма отправки статей</title>
     <style>
         * {
             box-sizing: border-box;
@@ -44,7 +44,9 @@
         }
 
         input[type="text"],
-        textarea {
+        input[type="url"],
+        textarea,
+        select {
             width: 100%;
             padding: 12px;
             border: 2px solid #bdc3c7;
@@ -54,7 +56,9 @@
         }
 
         input[type="text"]:focus,
-        textarea:focus {
+        input[type="url"]:focus,
+        textarea:focus,
+        select:focus {
             outline: none;
             border-color: #3498db;
         }
@@ -121,20 +125,52 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Отправка вакансии</h1>
+        <h1>Добавление статьи</h1>
         
         <div class="form-group">
-            <label for="name_company">ФИО или название компании:</label>
-            <input type="text" id="name_company" required>
+            <label for="title">Заголовок статьи:</label>
+            <input type="text" id="title" required>
         </div>
 
         <div class="form-group">
-            <label for="vacancy_text">Описание вакансии:</label>
-            <textarea id="vacancy_text" required></textarea>
+            <label for="text">Текст статьи:</label>
+            <textarea id="text" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="image">Ссылка на изображение (Google Drive или другой источник):</label>
+            <input type="url" id="image" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="study">Учебное заведение (если применимо):</label>
+                <input type="text" id="study">
+            </div>
+            
+            <div class="form-group">
+                <label for="type">Тип статьи:</label>
+                <select id="type" required>
+                    <option value="">Выберите тип</option>
+                    <option value="Конкурс">Конкурс</option>
+                    <option value="Новость">Новость</option>
+                    <option value="Мероприятие">Мероприятие</option>
+                    <option value="Статья">Статья</option>
+                </select>
+            </div>
         </div>
 
         <div class="loading">
@@ -142,7 +178,7 @@
             <p>Отправка данных...</p>
         </div>
 
-        <button onclick="handleSubmit()">Отправить вакансию</button>
+        <button onclick="handleSubmit()">Отправить статью</button>
         
         <div class="alert" id="message"></div>
     </div>
@@ -168,12 +204,15 @@
 
         async function handleSubmit() {
             const formData = {
-                name_company: document.getElementById('name_company').value.trim(),
-                vacancy_text: document.getElementById('vacancy_text').value.trim()
+                title: document.getElementById('title').value.trim(),
+                text: document.getElementById('text').value.trim(),
+                image: document.getElementById('image').value.trim(),
+                study: document.getElementById('study').value.trim(),
+                type: document.getElementById('type').value
             };
 
             // Валидация
-            if (!formData.name_company || !formData.vacancy_text) {
+            if (!formData.title || !formData.text || !formData.type) {
                 showMessage('Пожалуйста, заполните все обязательные поля', 'error');
                 return;
             }
@@ -182,30 +221,31 @@
 
             try {
                 const response = await fetch(SCRIPT_URL, {
-                    mode: 'no-cors',
                     method: 'POST',
                     body: JSON.stringify(formData),
                     headers: {
                         'Content-Type': 'application/json'
-                    }, 
+                    }
                 });
-
-                
-                const result = await response.json();
                 
                 if (!response.ok) throw new Error('Ошибка сети');
                 
+                const result = await response.json();
+                
                 if (result.success) {
-                    showMessage('Вакансия успешно отправлена!');
+                    showMessage(`Статья успешно отправлена на модерацию! ID: ${result.id}`);
                     // Очистка формы
-                    document.getElementById('name_company').value = '';
-                    document.getElementById('vacancy_text').value = '';
+                    document.getElementById('title').value = '';
+                    document.getElementById('text').value = '';
+                    document.getElementById('image').value = '';
+                    document.getElementById('study').value = '';
+                    document.getElementById('type').value = '';
                 } else {
                     throw new Error(result.error || 'Неизвестная ошибка');
                 }
             } catch (error) {
-                //console.error('Ошибка:', error);
-                //showMessage(`Ошибка отправки: ${error.message}`, 'error');
+                console.error('Ошибка:', error);
+                showMessage(`Ошибка отправки: ${error.message}`, 'error');
             } finally {
                 toggleLoading(false);
             }
