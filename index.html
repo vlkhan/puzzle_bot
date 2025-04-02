@@ -1,4 +1,11 @@
-<style>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Форма отправки статей</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
     * {
       box-sizing: border-box;
       margin: 0;
@@ -202,45 +209,6 @@
       border: 1px solid #e0e0e0;
     }
   
-    .file-upload-wrapper {
-      position: relative;
-      margin-bottom: 20px;
-    }
-  
-    .file-upload-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      background-color: #f8f9fa;
-      border: 2px dashed #e0e0e0;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-align: center;
-    }
-  
-    .file-upload-label:hover {
-      border-color: #3498db;
-      background-color: #eaf4fd;
-    }
-  
-    .file-upload-label i {
-      margin-right: 10px;
-      color: #3498db;
-      font-size: 1.2rem;
-    }
-  
-    .file-upload-input {
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-  
     /* Адаптивность */
     @media (max-width: 768px) {
       .container {
@@ -279,17 +247,6 @@
       }
     }
   </style>
-
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Форма отправки статей</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    /* Ваши стили здесь */
-  </style>
 </head>
 <body>
   <div class="container">
@@ -297,29 +254,29 @@
     
     <form id="articleForm">
       <div class="form-group">
-        <label for="title">Заголовок статьи*:</label>
+        <label for="title" class="required-field">Заголовок статьи</label>
         <input type="text" id="title" required>
       </div>
 
       <div class="form-group">
-        <label for="text">Текст статьи*:</label>
+        <label for="text" class="required-field">Текст статьи</label>
         <textarea id="text" required></textarea>
       </div>
       
       <div class="form-group">
-        <label for="image">Изображение:</label>
+        <label for="image">Изображение</label>
         <input type="file" id="image" accept="image/*">
         <img id="imagePreview" class="image-preview" alt="Предпросмотр">
       </div>
       
       <div class="form-row">
         <div class="form-group">
-          <label for="study">Учебное заведение:</label>
+          <label for="study">Учебное заведение</label>
           <input type="text" id="study">
         </div>
         
         <div class="form-group">
-          <label for="type">Тип статьи*:</label>
+          <label for="type" class="required-field">Тип статьи</label>
           <select id="type" required>
             <option value="">Выберите тип</option>
             <option value="Конкурс">Конкурс</option>
@@ -342,7 +299,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = '<?= ScriptApp.getService().getUrl() ?>';
+    // URL вашего веб-приложения Google Apps Script
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUKEiFDuQG1fEBgfIgqlJuoLJ8MI1VyMrIULZHErDY-mMDsBAqmkDr1iltb9xUC2X8/exec';
     const form = document.getElementById('articleForm');
     const messageEl = document.getElementById('message');
     const loadingEl = document.querySelector('.loading');
@@ -409,19 +367,24 @@
         formPayload.append('file', imageInput.files[0]);
       }
 
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: formPayload
-      });
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: formPayload
+        });
 
-      const result = await response.json();
-      
-      if (result.success) {
-        showMessage(`Статья #${result.id} успешно отправлена!`, 'success');
-        form.reset();
-        imagePreview.style.display = 'none';
-      } else {
-        throw new Error(result.error || 'Неизвестная ошибка');
+        const result = await response.json();
+        
+        if (result.success) {
+          showMessage(`Статья #${result.id} успешно отправлена на модерацию!`, 'success');
+          form.reset();
+          imagePreview.style.display = 'none';
+        } else {
+          throw new Error(result.error || 'Неизвестная ошибка');
+        }
+      } catch (error) {
+        console.error('Ошибка отправки:', error);
+        throw error;
       }
     }
 
