@@ -360,6 +360,8 @@
         type: formData.type
       };
 
+      console.log('Отправка данных:', JSON.stringify(formPayload));
+
       try {
         const response = await fetch(SCRIPT_URL, {
           method: 'POST',
