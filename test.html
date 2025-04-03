@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Send GET Request</title>
+</head>
+<body>
+    <button id="sendButton">Send Request</button>
+
+    <script>
+        function sendRequest() {
+            var url = 'https://script.google.com/macros/s/AKfycbw7Skw5VRnvoJeTOmoB28zhuc5fagdU5pTvib_MCDv8AaavfVQ_0v5TyPoU-_hg_sjE/exec'
+
+
+            // send post request 
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                    
+                },
+                body: JSON.stringify({
+                    title: 'John Doe',
+                    text: "30",
+                    type : "text", 
+                }),
+                mode : 'no-cors'   
+            })
+        }
+
+        document.getElementById('sendButton').addEventListener('click', sendRequest);
+    </script>
+</body>
+</html>
