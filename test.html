@@ -8,20 +8,26 @@
 
     <script>
         function sendRequest() {
-            var url = 'https://script.google.com/macros/s/AKfycbwQ0Kchcbh5h6ui4ClQo6m4M6XqnDPnKmGvXI17Acvt0PaYRCxrM8axgZIFBIol30Co/exec'
+            var url = 'https://script.google.com/macros/s/AKfycbw7Skw5VRnvoJeTOmoB28zhuc5fagdU5pTvib_MCDv8AaavfVQ_0v5TyPoU-_hg_sjE/exec'
 
 
+            // send post request 
             fetch(url, {
-                method: 'GET', 
-                mode: 'no-cors'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                    
+                },
+                body: JSON.stringify({
+                    title: 'John Doe',
+                    text: "30",
+                    type : "text", 
+                }),
+                mode : 'no-cors'   
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
         }
 
         document.getElementById('sendButton').addEventListener('click', sendRequest);
