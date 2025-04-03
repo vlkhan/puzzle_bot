@@ -18,8 +18,7 @@ function testDoPost() {
             })
         }
     };
-    const result = doPost(mockRequest);
-    Logger.log(result.getContent());
+    const result = doPost(mockRequest); 
 }
 
 /**
@@ -33,53 +32,71 @@ function doGet() {
  * Основной обработчик POST запросов
  */
 function doPost(e) {
-    Logger.log('Received POST request');
-    Logger.log(JSON.stringify(e));
+  Logger.log('Received POST request');
+  Logger.log(JSON.stringify(e));
+  
+  try {
+    let data = {};
+    let fileUrl = '';
 
-    try {
-        let data = {};
-        let fileUrl = '';
-
-        // Обработка multipart/form-data
-        if (e.postData.type === 'multipart/form-data') {
-            data = parseMultipartFormData(e);
-            if (data.file) {
-                fileUrl = uploadFileToDrive(data.file);
-            }
-        } else if (e.postData.type === 'application/json') {
-            data = JSON.parse(e.postData.contents);
-        } else {
-            throw new Error('Unsupported content type');
-        }
-
-        // Проверка обязательных полей
-        if (!data.title || !data.text || !data.type) {
-            throw new Error('Missing required fields');
-        }
-
-        // Запись в таблицу
-        const recordId = writeToSpreadsheet(data, fileUrl);
-
-        // Отправка в Telegram
-        sendTelegramNotification(data, recordId, fileUrl);
-
-        // Успешный ответ
-        const response = {
-            success: true,
-            id: recordId,
-            fileUrl: fileUrl
-        };
-
-        return ContentService.createTextOutput(JSON.stringify(response))
-            .setMimeType(ContentService.MimeType.JSON)
-            .setHeader('Access-Control-Allow-Origin', '*')
-            .setHeader('Access-Control-Allow-Methods', 'POST')
-            .setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    } catch (error) {
-        Logger.log('Server error: ' + error.message);
-        console.error('Server error: ' + error.message);
+    // Обработка разных типов контента
+    if (!e.postData) {
+      throw new Error('No post data received');
     }
+
+    switch(e.postData.type) {
+      case 'multipart/form-data':
+        data = parseMultipartFormData(e);
+        if (data.file) {
+          fileUrl = uploadFileToDrive(data.file);
+        }
+        break;
+        
+      case 'application/json':
+        data = JSON.parse(e.postData.contents);
+        break;
+        
+      default:
+        throw new Error('Unsupported content type: ' + e.postData.type);
+    }
+
+    // Проверка обязательных полей
+    const requiredFields = ['title', 'text', 'type'];
+    const missingFields = requiredFields.filter(field => !data[field]);
+    
+    if (missingFields.length > 0) {
+      throw new Error('Missing required fields: ' + missingFields.join(', '));
+    }
+
+    // Запись в таблицу
+    const recordId = writeToSpreadsheet(data, fileUrl);
+
+    // Отправка в Telegram (раскомментируйте если нужно)
+    // sendTelegramNotification(data, recordId, fileUrl);
+
+    // Успешный ответ
+    const response = {
+      success: true,
+      id: recordId,
+      fileUrl: fileUrl || null
+    };
+
+    return ContentService
+      .createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    Logger.log('Server error: ' + error.message);
+    console.error('Server error: ' + error.message);
+    
+    // Ошибка
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: error.message
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 /**
  * Запись данных в Google Sheets
