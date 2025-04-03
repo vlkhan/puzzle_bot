@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Send GET Request</title>
+</head>
+<body>
+    <button id="sendButton">Send Request</button>
+
+    <script>
+        function sendRequest() {
+            var url = 'https://script.google.com/macros/s/AKfycbz7EY0ChOCZ2xr7eEVQKIVpzXBByBHvcfLX8BXBMPs58nsxGLOB5XUt8mpmtDy-ENDX/exec';
+             
+
+            fetch(url, {
+                method: 'GET', 
+                mode: 'no-cors'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        document.getElementById('sendButton').addEventListener('click', sendRequest);
+    </script>
+</body>
+</html>

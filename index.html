@@ -300,7 +300,7 @@
 
   <script>
     // URL вашего веб-приложения Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7EY0ChOCZ2xr7eEVQKIVpzXBByBHvcfLX8BXBMPs58nsxGLOB5XUt8mpmtDy-ENDX/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAJ25AC5UtGcqXy30YFwpUBbq7zSlezC-K8E40Yjc/dev';
     const form = document.getElementById('articleForm');
     const messageEl = document.getElementById('message');
     const loadingEl = document.querySelector('.loading');
@@ -354,22 +354,19 @@
 
     // Стандартная отправка формы
     async function submitRegularForm(formData) {
-      const formPayload = {
-        title: formData.title,
-        text: formData.text,
-        type: formData.type
-      };
+      
 
-      console.log('Отправка данных:', JSON.stringify(formPayload));
+      console.log('Отправка данных:', JSON.stringify(formData));
 
       try {
+        const formDataObj = new FormData();
+        formDataObj.append('title', formData.title);
+        formDataObj.append('text', formData.text);
+        formDataObj.append('type', formData.type);
+
         const response = await fetch(SCRIPT_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formPayload),
-          mode : 'no-cors'
+          body: JSON.stringify(formDataObj) 
         });
 
         if (!response.ok) {
