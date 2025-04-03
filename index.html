@@ -299,8 +299,8 @@
   </div>
 
   <script>
-    // URL вашего веб-приложения Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAJ25AC5UtGcqXy30YFwpUBbq7zSlezC-K8E40Yjc/dev';
+    // URL вашего веб-приложения Google Apps Scriptconst 
+    SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQ0Kchcbh5h6ui4ClQo6m4M6XqnDPnKmGvXI17Acvt0PaYRCxrM8axgZIFBIol30Co/exec'
     const form = document.getElementById('articleForm');
     const messageEl = document.getElementById('message');
     const loadingEl = document.querySelector('.loading');
@@ -330,7 +330,7 @@
         study: document.getElementById('study').value.trim(),
         type: document.getElementById('type').value
       };
-
+      console.log('Отправка данных 123 :',  formData);  
       // Валидация
       if (!formData.title || !formData.text || !formData.type) {
         showMessage('Пожалуйста, заполните все обязательные поля', 'error');
@@ -354,19 +354,22 @@
 
     // Стандартная отправка формы
     async function submitRegularForm(formData) {
-      
+ 
+ 
 
       console.log('Отправка данных:', JSON.stringify(formData));
 
-      try {
-        const formDataObj = new FormData();
-        formDataObj.append('title', formData.title);
-        formDataObj.append('text', formData.text);
-        formDataObj.append('type', formData.type);
+      try { 
 
         const response = await fetch(SCRIPT_URL, {
           method: 'POST',
-          body: JSON.stringify(formDataObj) 
+          body: JSON.stringify(formData),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': '*/*',
+            'Allow-Control-Allow-Origin': '*',
+          },
+          mode : 'no-cors'  
         });
 
         if (!response.ok) {
